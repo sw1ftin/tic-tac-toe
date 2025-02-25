@@ -59,34 +59,56 @@ function checkWin() {
     return false;
 }
 
+function makeAiMove() {
+    const emptyCells = field.reduce((acc, cell, idx) => {
+        if (cell === EMPTY) acc.push(idx);
+        return acc;
+    }, []);
+    
+    if (emptyCells.length > 0) {
+        const randomIdx = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        const row = Math.floor(randomIdx / dimension);
+        const col = randomIdx % dimension;
+        field[randomIdx] = CROSS;
+        renderSymbolInCell(CROSS, row, col);
+        return true;
+    }
+    return false;
+}
+
 function cellClickHandler (row, col) {
     console.log(`Clicked on cell: ${row}, ${col}`);
 
-    if (isEnded === true || field[row * dimension + col] !== EMPTY)
+    if (isEnded === true || !zeroTurn || field[row * dimension + col] !== EMPTY)
         return;
 
-    if (zeroTurn === true) {
-        field[row * dimension + col] = ZERO;
-        renderSymbolInCell(ZERO, row, col);
-    } else {
-        field[row * dimension + col] = CROSS;
-        renderSymbolInCell(CROSS, row, col);
-    }
+    field[row * dimension + col] = ZERO;
+    renderSymbolInCell(ZERO, row, col);
 
-    isEnded = checkWin();
-
-    if (isEnded === true) {
+    if (checkWin()) {
         for (let i in winIndicies)
-            renderSymbolInCell(zeroTurn ? ZERO : CROSS, Math.floor(winIndicies[i] / dimension), winIndicies[i] % dimension, 'red');
-        alert(`${zeroTurn? 1 : 2}-ый игрок победил!`);
+            renderSymbolInCell(ZERO, Math.floor(winIndicies[i] / dimension), winIndicies[i] % dimension, 'red');
+        alert('Вы победили!');
         isEnded = true;
+        return;
     }
-    else if (field.indexOf(EMPTY) === -1) {
+    
+    if (field.indexOf(EMPTY) === -1) {
         alert('Победила дружба');
         isEnded = true;
+        return;
     }
 
-    zeroTurn = !zeroTurn;
+    zeroTurn = false;
+    makeAiMove();
+    if (checkWin()) {
+        for (let i in winIndicies)
+            renderSymbolInCell(CROSS, Math.floor(winIndicies[i] / dimension), winIndicies[i] % dimension, 'red');
+        alert('Компьютер победил!');
+        isEnded = true;
+        return;
+    }
+    zeroTurn = true;
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
