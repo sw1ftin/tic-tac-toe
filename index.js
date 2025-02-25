@@ -13,12 +13,20 @@ let winIndicies;
 startGame();
 addResetListener();
 
-function startGame () {
-    dimension = parseInt(prompt('Введите размер поля', '3')) || 3;
-    field = Array(dimension * dimension).fill(EMPTY);
-    renderGrid(dimension);
-    isEnded = false;
-    zeroTurn = true;
+function startGame (dimensionN, fieldN, isEndedN, zeroTurnN, newFlag = false) {
+    if (!newFlag){
+        dimension = parseInt(prompt('Введите размер поля', '3')) || 3;
+        field = Array(dimension * dimension).fill(EMPTY);
+        renderGrid(dimension);
+        isEnded = false;
+        zeroTurn = true;
+    } else{
+        dimension = dimensionN;
+        field = fieldN;
+        isEnded = isEndedN;
+        zeroTurnN = zeroTurnN;
+        renderGrid(dimension);
+    }
 }
 
 function renderGrid (dimension) {
@@ -28,7 +36,7 @@ function renderGrid (dimension) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
-            cell.textContent = EMPTY;
+            cell.textContent = field[i * dimension + j];
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
@@ -87,6 +95,29 @@ function makeAiMove() {
     return false;
 }
 
+function localCount(arr, elem){
+    let numb = 0;
+    for (let i = 0; i < arr.length; i++){
+        if (arr[i] === elem){
+            numb++;
+        }
+    }
+    return numb;
+}
+
+function checkIfHalfFilled(){
+    if (localCount(field, EMPTY) >= dimension*dimension / 2) return;
+    let newField = Array((dimension + 2)*(dimension + 2)).fill(EMPTY);
+    for (let i = 0; i < dimension; i++){
+        for (let j = 0; j < dimension; j++){
+            newField[(i + 1)* (dimension + 2) + j + 1] = field[i * dimension + j];
+        }
+    }
+    dimension += 2;
+    field = newField;
+    startGame(dimension, field, isEnded, zeroTurn, true);
+}
+
 function cellClickHandler (row, col) {
     console.log(`Clicked on cell: ${row}, ${col}`);
 
@@ -110,6 +141,7 @@ function cellClickHandler (row, col) {
         return;
     }
 
+    checkIfHalfFilled();
     zeroTurn = false;
     makeAiMove();
     if (checkWin()) {
@@ -120,6 +152,7 @@ function cellClickHandler (row, col) {
         return;
     }
     zeroTurn = true;
+    checkIfHalfFilled();
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
