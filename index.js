@@ -65,6 +65,17 @@ function makeAiMove() {
         return acc;
     }, []);
     
+    for (let idx of emptyCells) {
+        field[idx] = CROSS;
+        if (checkWin()) {
+            const row = Math.floor(idx / dimension);
+            const col = idx % dimension;
+            renderSymbolInCell(CROSS, row, col);
+            return true;
+        }
+        field[idx] = EMPTY;
+    }
+    
     if (emptyCells.length > 0) {
         const randomIdx = emptyCells[Math.floor(Math.random() * emptyCells.length)];
         const row = Math.floor(randomIdx / dimension);
