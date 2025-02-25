@@ -4,6 +4,7 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
+let dimension;
 let field;
 let isEnded;
 let zeroTurn;
@@ -13,8 +14,9 @@ startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
-    field = [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY];
+    dimension = parseInt(prompt('Введите размер поля', '3')) || 3;
+    field = Array(dimension * dimension).fill(EMPTY);
+    renderGrid(dimension);
     isEnded = false;
     zeroTurn = true;
 }
@@ -34,32 +36,40 @@ function renderGrid (dimension) {
     }
 }
 
-function check(field, a, b, c) {
-    if (field[a] === field[b] && field[b] === field[c] && field[c] !== EMPTY) {
-        winIndicies = [a, b, c];
-        return true;
+function checkLine(start, step, length) {
+    const value = field[start];
+    if (value === EMPTY) return false;
+    
+    winIndicies = [start];
+    for (let i = 1; i < length; i++) {
+        const idx = start + step * i;
+        if (field[idx] !== value) return false;
+        winIndicies.push(idx);
     }
+    return true;
+}
+
+function checkWin() {
+    for (let i = 0; i < dimension; i++) {
+        if (checkLine(i * dimension, 1, dimension) || 
+            checkLine(i, dimension, dimension)) return true;
+    }
+    if (checkLine(0, dimension + 1, dimension) || 
+        checkLine(dimension - 1, dimension - 1, dimension)) return true;
     return false;
 }
 
-function checkWin () {
-    return (check(field, 0, 1, 2) || check(field, 3, 4, 5) || check(field, 6, 7, 8) ||
-        check(field, 0, 3, 6) || check(field, 1, 4, 7) || check(field, 2, 5, 8) ||
-        check(field, 0, 4, 8) || check(field, 2, 4, 6));
-}
-
 function cellClickHandler (row, col) {
-    // Пиши код тут
     console.log(`Clicked on cell: ${row}, ${col}`);
 
-    if (isEnded === true || field[row * 3 + col] !== EMPTY)
+    if (isEnded === true || field[row * dimension + col] !== EMPTY)
         return;
 
     if (zeroTurn === true) {
-        field[row * 3 + col] = ZERO;
+        field[row * dimension + col] = ZERO;
         renderSymbolInCell(ZERO, row, col);
     } else {
-        field[row * 3 + col] = CROSS;
+        field[row * dimension + col] = CROSS;
         renderSymbolInCell(CROSS, row, col);
     }
 
@@ -67,7 +77,7 @@ function cellClickHandler (row, col) {
 
     if (isEnded === true) {
         for (let i in winIndicies)
-            renderSymbolInCell(zeroTurn ? ZERO : CROSS, Math.floor(winIndicies[i] / 3) , winIndicies[i] % 3, 'red');
+            renderSymbolInCell(zeroTurn ? ZERO : CROSS, Math.floor(winIndicies[i] / dimension), winIndicies[i] % dimension, 'red');
         alert(`${zeroTurn? 1 : 2}-ый игрок победил!`);
         isEnded = true;
     }
@@ -77,10 +87,6 @@ function cellClickHandler (row, col) {
     }
 
     zeroTurn = !zeroTurn;
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -105,9 +111,6 @@ function resetClickHandler () {
     startGame();
 }
 
-
-/* Test Function */
-/* Победа первого игрока */
 function testWin () {
     clickOnCell(0, 2);
     clickOnCell(0, 0);
@@ -118,7 +121,6 @@ function testWin () {
     clickOnCell(2, 1);
 }
 
-/* Ничья */
 function testDraw () {
     clickOnCell(2, 0);
     clickOnCell(1, 0);
